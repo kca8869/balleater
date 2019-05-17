@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Ball Eater</title>
+	<style>
+		*{
+			margin: 0 auto;
+		}
+		h1{
+			text-align: center;
+			
+		}
+		canvas{
+			
+			display: block;
+			background-color: #eee;
+		}
+		body{
+			overflow: hidden;
+		}
+		.row{
+			display: flex;
+			width: 50%;
+			align-items: flex-end;
+		}
+		
+	</style>
+</head>
+<body>
+	<div class="row">
+		<h1>Ball Eater</h1>	
+		<h2 id="ballCount"></h2>
+	</div>
+		<canvas></canvas>
+
+<script>
+	var canvas=document.querySelector("canvas");
+	var ctx=canvas.getContext("2d");
+
+	var width=canvas.width=window.innerWidth;
+	var height=canvas.height=window.innerHeight;
+	
+	var upPress=false;
+	var downPress=false;
+	var rightPress=false;
+	var leftPress=false;
+	var ballText=document.querySelector('#ballCount');
+	var ballCount=25;
+
+
+	function random(min,max) {
+  var num = Math.floor(Math.random()*(max-min)) + min;
+  return num;
+}
+
+	function Shape(x,y,velX,velY,exists){
+		this.x=x;
+		this.y=y;
+		this.velX=velX;
+		this.velY=velY;
+		this.exists=exists;
+	}
+	function Ball(x,y,velX,VelY,exists,color,size){
+		Shape.call(this,x,y,velX,VelY,exists);
+		this.color=color;
+		this.size=size;
+	}
+	Ball.prototype.draw=function(){
+		ctx.beginPath();
+		ctx.fillStyle=this.color;
+		ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+		ctx.fill();
+		
+	}
+	
+	Ball.prototype.update=function(){
+		if (this.y>height-this.size||this.y<this.size) {
+			this.velY=-this.velY;
+		}
+		if (this.x>width-this.size||this.x<this.size) {
+			this.velX=-this.velX;
+		}
+		this.x+=this.velX;
+		this.y+=this.velY;
+	}
+	function EvilCircle(x,y,exists){
+		Shape.call(this,x,y,exists);
+		this.color="black";
+		this.size=10;
+		this.velX=20;
+		this.velY=20;
+	}
+	EvilCircle.prototype.draw=function(){
+		ctx.beginPath();
+		ctx.lineWidth=3;
+		ctx.strokeStyle=this.color;
+		ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+		ctx.stroke();
+	}
+	EvilCircle.prototype.move=function(){
+		if (this.y<height-this.size&&downPress) {
+			this.y+=this.velY;
+		}
+		if (this.y>this.size&&upPress) {
+			this.y-=this.velY;
+		}
+		if (this.x>this.size&&leftPress) {
+			this.x-=this.velX;
+		}
+		if (this.x<width-this.size&&rightPress) {
+			this.x+=this.velX;
+		}
+	}
+document.addEventListener("keydown",keyDownAction)
+document.addEventListener("keyup",keyUpAction)
+	
+function keyDownAction(e){
+	if (e.keyCode==38) {
+		upPress=true;
+	}
+	if (e.keyCode==40) {
+		downPress=true;
+	}
+	if (e.keyCode==37) {
+		leftPress=true;
+	}
+	if (e.keyCode==39) {
+		rightPress=true;
+	}
+}
+function keyUpAction(e){
+	if (e.keyCode==38) {
+		upPress=false;
+	}
+	if (e.keyCode==40) {
+		downPress=false;
+	}
+	if (e.keyCode==37) {
+		leftPress=false;
+	}
+	if (e.keyCode==39) {
+		rightPress=false;
+	}
+}
+var evilCircle= new EvilCircle(50,50,true);
+
+var balls=[];
+		function loop(){
+		ctx.clearRect(0,0,width,height);
+		evilCircle.draw();
+		evilCircle.move();
+		while(balls.length<25){
+			var ball=new Ball(
+				random(0,width),
+				random(0,height),
+				random(-7,7),
+				random(-7,7),
+				true,
+				'rgb('+random(0,255)+','+random(0,255)+','+random(0,255)+')',
+				random(10,20)
+				);
+			balls.push(ball);
+		}
+
+		for (var i = 0;i<balls.length; i++) {
+			if (balls[i].exists) {
+			balls[i].draw();
+			balls[i].update();
+		}
+		}
+
+		for (var j=0; j <balls.length; j++) {
+			if (balls[j].exists) {
+			var dx=balls[j].x-evilCircle.x;
+			var dy=balls[j].y-evilCircle.y;
+			var distance=Math.sqrt(dx*dx+dy*dy);
+			if (distance<balls[j].size+evilCircle.size){
+				balls[j].exists=false;
+				ballCount--;
+			}
+		}
+		}
+		ballText.innerText="Ball Count:" +ballCount;
+		requestAnimationFrame(loop);
+	}
+	loop();
+
+
+</script>
+</body>
+</html>
